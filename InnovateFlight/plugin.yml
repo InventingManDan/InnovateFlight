@@ -1,0 +1,9 @@
+main: innovateFlight.Main
+name: InnovateFlight
+version: 1.0.0
+description: InnovateMC Flight Plugin
+api-version: 1.16
+Author: InventingManDan
+commands:
+  fly:
+    description: /fly command
