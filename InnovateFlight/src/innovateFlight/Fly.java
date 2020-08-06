@@ -17,350 +17,87 @@ import org.bukkit.entity.Player;
 public class Fly extends Utils implements CommandExecutor, TabCompleter {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (sender instanceof Player) {
-			if (command.getName().equalsIgnoreCase("fly")) {
-				Player p = (Player) sender;
-				if (isAdmin(p)) {
-					if (args.length == 0) {
-						p.sendMessage(
-								ChatColor.GOLD + "----" + ChatColor.RED + "Innovate Flight" + ChatColor.GOLD + "----");
-						p.sendMessage(ChatColor.GOLD + "Usage:");
-						p.sendMessage("/fly <on|off> (Player)");
-						p.sendMessage("/fly speed <0-9> (Player)");
-						if (flightEnabled(p) == true) {
-							p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "enabled");
-							flightSpeed(p);
-							isFlying(p);
-						}
-						if (flightEnabled(p) == false) {
-							p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "disabled");
-							flightSpeed(p);
-						}
-					}
-					if (args.length == 1) {
+		switch (args.length) {
+			case 0:
+				if (sender.hasPermission("innovateflight.menu")) {
+					sendMenu(sender);
+				}
+				break;
+
+			case 1:
+				if(sender instanceof Player) {
+					Player player = (Player) sender;
+					if (sender.hasPermission("innovateflight.toggle")) {
 						if (args[0].equalsIgnoreCase("on")) {
-							flightOn(p);
-						}
-						if (args[0].equalsIgnoreCase("off")) {
-							flightOff(p);
-						}
-					}
-					if (args.length > 1) {
-						Player f = Bukkit.getPlayerExact(args[1]);
-						if (args[0].equalsIgnoreCase("on")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									flightOn(p);
-								} else {
-									flightOn(f);
-									p.sendMessage(ChatColor.GOLD + "Flight set to " + ChatColor.RED + "On"
-											+ ChatColor.GOLD + " for " + ChatColor.RED + f.getName());
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-								if (o.hasPlayedBefore()) {
-									p.sendMessage(ChatColor.RED + o.getName() + " is not online");
-								} else {
-									p.sendMessage(ChatColor.RED + args[1] + " has never joined the server");
-								}
-							}
-						}
-						if (args[0].equalsIgnoreCase("off")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									flightOff(p);
-								} else {
-									flightOff(f);
-									p.sendMessage(ChatColor.GOLD + "Flight set to " + ChatColor.RED + "Off"
-											+ ChatColor.GOLD + " for " + ChatColor.RED + f.getName());
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-								if (o.hasPlayedBefore()) {
-									p.sendMessage(ChatColor.RED + o.getName() + " is not online");
-								} else {
-									p.sendMessage(ChatColor.RED + args[1] + " has never joined the server");
-								}
-							}
+							setFlight(player, true);
+						} else if (args[0].equalsIgnoreCase("off")) {
+							setFlight(player, false);
 						}
 					}
-					if (args.length == 2) {
+				}
+				break;
+
+			case 2:
+				if (sender instanceof Player) {
+					Player player = (Player) sender;
+					if (sender.hasPermission("innovateflight.speed")) {
 						if (args[0].equalsIgnoreCase("speed")) {
-							setSpeed(p, args);
-						}
-					}
-					if (args.length > 2) {
-						Player f = Bukkit.getPlayerExact(args[2]);
-						if (args[0].equalsIgnoreCase("speed")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									setSpeed(p, args);
-								} else {
-									setSpeed(f, args);
-									fConfirm(p, args);
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[2]);
-								if (o.hasPlayedBefore()) {
-									p.sendMessage(ChatColor.RED + o.getName() + " is not online");
-								} else {
-									p.sendMessage(ChatColor.RED + args[2] + " has never joined the server");
-								}
+							try {
+								int speed = Integer.parseInt(args[1]);
+								setFlySpeed(player, speed);
+								break;
+							} catch (NumberFormatException e) {
+								break;
 							}
 						}
 					}
 				}
-				if (isMod(p)) {
-					if (args.length == 0) {
-						p.sendMessage(
-								ChatColor.GOLD + "----" + ChatColor.RED + "Innovate Flight" + ChatColor.GOLD + "----");
-						p.sendMessage(ChatColor.GOLD + "Usage:");
-						p.sendMessage("/fly <on|off>");
-						p.sendMessage("/fly speed <0-9>");
-						if (flightEnabled(p) == true) {
-							p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "enabled");
-							flightSpeed(p);
-							isFlying(p);
-						}
-						if (flightEnabled(p) == false) {
-							p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "disabled");
-							flightSpeed(p);
-							isFlying(p);
-						}
+
+				if (sender.hasPermission("innovateflight.toggle") && sender.hasPermission("innovateflight.setothers")) {
+					Player requestedPlayer = Bukkit.getPlayerExact(args[1]);
+
+					if (requestedPlayer == null) {
+						sender.sendMessage(ChatColor.RED + args[1] + " is not online");
+						break;
 					}
-					if (args.length == 1) {
-						if (args[0].equalsIgnoreCase("on")) {
-							flightOn(p);
-						}
-						if (args[0].equalsIgnoreCase("off")) {
-							flightOff(p);
-						}
-					}
-					if (args.length > 1) {
-						Player f = Bukkit.getPlayerExact(args[1]);
-						if (args[0].equalsIgnoreCase("on")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									flightOn(p);
-								} else {
-									noPermission(p);
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-								if (o.hasPlayedBefore()) {
-									noPermission(p);
-								} else {
-									noPermission(p);
-								}
-							}
-						}
-						if (args[0].equalsIgnoreCase("off")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									flightOff(p);
-								} else {
-									flightOff(f);
-									noPermission(p);
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-								if (o.hasPlayedBefore()) {
-									noPermission(p);
-								} else {
-									noPermission(p);
-								}
-							}
-						}
-					}
-					if (args.length == 2) {
-						if (args[0].equalsIgnoreCase("speed")) {
-							setSpeed(p, args);
-						}
-					}
-					if (args.length > 2) {
-						Player f = Bukkit.getPlayerExact(args[2]);
-						if (args[0].equalsIgnoreCase("speed")) {
-							if (f != null) {
-								if (p.getName() == f.getName()) {
-									setSpeed(p, args);
-								} else {
-									noPermission(p);
-								}
-							} else {
-								@SuppressWarnings("deprecation")
-								OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[2]);
-								if (o.hasPlayedBefore()) {
-									noPermission(p);
-								} else {
-									noPermission(p);
-								}
-							}
-						}
-					}
-				} else {
-					if (isPlayer(p)) {
-						if (args.length == 0) {
-							if (flightEnabled(p) == true) {
-								p.sendMessage(ChatColor.GOLD + "----" + ChatColor.RED + "Innovate Flight"
-										+ ChatColor.GOLD + "----");
-								p.sendMessage(ChatColor.GOLD + "Usage:");
-								p.sendMessage("/fly speed <0-9>");
-								p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "enabled");
-								flightSpeed(p);
-								isFlying(p);
-							}
-							if (flightEnabled(p) == false) {
-								p.sendMessage(ChatColor.GOLD + "Flight is " + ChatColor.RED + "disabled");
-							}
-						}
-						if (args.length == 1) {
-							if (args[0].equalsIgnoreCase("on")) {
-								noPermission(p);
-							}
-							if (args[0].equalsIgnoreCase("off")) {
-								noPermission(p);
-							}
-						}
-						if (args.length > 1) {
-							Player f = Bukkit.getPlayerExact(args[1]);
-							if (args[0].equalsIgnoreCase("on")) {
-								if (f != null) {
-									if (p.getName() == f.getName()) {
-										noPermission(p);
-									} else {
-										noPermission(p);
-									}
-								} else {
-									@SuppressWarnings("deprecation")
-									OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-									if (o.hasPlayedBefore()) {
-										noPermission(p);
-									} else {
-										noPermission(p);
-									}
-								}
-							}
-							if (args[0].equalsIgnoreCase("off")) {
-								noPermission(p);
-							}
-						}
-						if (args.length == 2) {
-							if (args[0].equalsIgnoreCase("speed")) {
-								setSpeed(p, args);
-							}
-						}
-						if (args.length > 2) {
-							Player f = Bukkit.getPlayerExact(args[2]);
-							if (args[0].equalsIgnoreCase("speed")) {
-								if (f != null) {
-									if (p.getName() == f.getName()) {
-										setSpeed(p, args);
-									} else {
-										noPermission(p);
-									}
-								} else {
-									@SuppressWarnings("deprecation")
-									OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[2]);
-									if (o.hasPlayedBefore()) {
-										noPermission(p);
-									} else {
-										noPermission(p);
-									}
-								}
-							}
-						}
+					
+					Boolean toggle = null;
+					if (args[0].equalsIgnoreCase("on")) toggle = true;
+					if (args[0].equalsIgnoreCase("off")) toggle = false;
+
+					if (toggle != null) {
+						setFlight(requestedPlayer, toggle);
+						sender.sendMessage(ChatColor.GOLD + "Flight set to " + ChatColor.RED + args[0].toUpperCase()
+								+ ChatColor.GOLD + " for " + ChatColor.RED + requestedPlayer.getName());
 					}
 				}
-			}
-		} else {
-			if (sender instanceof ConsoleCommandSender) {
-				if (args.length == 0) {
-					sender.sendMessage(
-							ChatColor.GOLD + "----" + ChatColor.RED + "Innovate Flight" + ChatColor.GOLD + "----");
-					sender.sendMessage(ChatColor.GOLD + "Usage:");
-					sender.sendMessage("fly <on|off> <Player>");
-					sender.sendMessage("fly speed <0-9> <Player>");
-				}
-				if (args.length == 1) {
-					if (args[0].equalsIgnoreCase("on")) {
-						sender.sendMessage(ChatColor.RED + "Please enter a playername");
-					}
-					if (args[0].equalsIgnoreCase("off")) {
-						sender.sendMessage(ChatColor.RED + "Please enter a playername");
-					}
-				}
-				if (args.length > 1) {
-					Player f = Bukkit.getPlayerExact(args[1]);
-					if (args[0].equalsIgnoreCase("on")) {
-						if (f != null) {
-							flightOn(f);
-							sender.sendMessage(ChatColor.GOLD + "Flight set to " + ChatColor.RED + "On" + ChatColor.GOLD
-									+ " for " + ChatColor.RED + f.getName());
-						} else {
-							@SuppressWarnings("deprecation")
-							OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-							if (o.hasPlayedBefore()) {
-								sender.sendMessage(ChatColor.RED + o.getName() + " is not online");
-							} else {
-								sender.sendMessage(ChatColor.RED + args[1] + " has never joined the server");
-							}
-						}
-					} else {
-						if (args[0].equalsIgnoreCase("off")) {
-							if (f != null) {
-								flightOff(f);
-								sender.sendMessage(ChatColor.GOLD + "Flight set to " + ChatColor.RED + "Off"
-										+ ChatColor.GOLD + " for " + ChatColor.RED + f.getName());
-							}
-						} else {
-							@SuppressWarnings("deprecation")
-							OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[1]);
-							if (o.hasPlayedBefore()) {
-								sender.sendMessage(ChatColor.RED + o.getName() + " is not online");
-							} else {
-								sender.sendMessage(ChatColor.RED + args[1] + " has never joined the server");
-							}
-						}
-					}
-				}
-				if (args.length == 2) {
+				break;
+
+			case 3:
+				if (sender.hasPermission("innovateflight.speed") && sender.hasPermission("innovateflight.setothers")) {
 					if (args[0].equalsIgnoreCase("speed")) {
-						sender.sendMessage(ChatColor.RED + "Please enter a playername");
-					}
-				}
-				if (args.length > 2) {
-					Player f = Bukkit.getPlayerExact(args[2]);
-					if (args[0].equalsIgnoreCase("speed")) {
-						if (f != null) {
-							setSpeed(f, args);
-							sender.sendMessage(ChatColor.GOLD + "Flight speed set to " + ChatColor.RED + args[1]
-									+ ChatColor.GOLD + " for " + ChatColor.RED + f.getName());
-						} else {
-							@SuppressWarnings("deprecation")
-							OfflinePlayer o = Bukkit.getServer().getOfflinePlayer(args[2]);
-							if (o.hasPlayedBefore()) {
-								sender.sendMessage(ChatColor.RED + o.getName() + " is not online");
-							} else {
-								sender.sendMessage(ChatColor.RED + args[2] + " has never joined the server");
-							}
+						Player requestedPlayer = Bukkit.getPlayerExact(args[1]);
+
+						if (requestedPlayer == null) {
+							sender.sendMessage(ChatColor.RED + args[1] + " is not online");
+							break;
+						}
+
+						try {
+							int speed = Integer.parseInt(args[2]);
+							speed = setFlySpeed(requestedPlayer, speed);
+
+							sender.sendMessage(ChatColor.GOLD + "Flight speed set to "
+									+ ChatColor.RED + speed + ChatColor.GOLD + " for "
+									+ ChatColor.RED + requestedPlayer.getDisplayName());
+						} catch (NumberFormatException e) {
+							break;
 						}
 					}
 				}
-			}
 		}
-		return false;
+		return true;
 	}
-
-	List<String> admin = new ArrayList<>(Arrays.asList("on", "off", "speed"));
-
-	List<String> player = new ArrayList<>(Arrays.asList("speed"));
-
-	List<String> speed = new ArrayList<>(Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"));
 
 	@Override
 	public List<String> onTabComplete(CommandSender commandSender, Command command, String label, String[] args) {
@@ -368,26 +105,53 @@ public class Fly extends Utils implements CommandExecutor, TabCompleter {
 
 		switch (args.length) {
 		case 1:
-			for (String a : admin) {
-				if (commandSender.isOp() || commandSender.hasPermission("fly.admin")
-						|| commandSender.hasPermission("fly.mod")) {
-					if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
-						result.add(a);
-					}
-				}
+			if (commandSender.hasPermission("innovateflight.toggle")) {
+				if("on".startsWith(args[0])) result.add("on");
+				if("off".startsWith(args[0])) result.add("off");
 			}
+
+			if (commandSender.hasPermission("innovateflight.speed")) {
+				if("speed".startsWith(args[0])) result.add("speed");
+			}
+
 			return result;
 
 		case 2:
 			if (args[0].equalsIgnoreCase("speed")) {
-				for (String a : speed) {
-					if (a.toLowerCase().startsWith(args[1].toLowerCase())) {
-						result.add(a);
+				if (commandSender.hasPermission("innovateflight.speed")) {
+					for (int i = 1; i < 11; i++) {
+						if(Integer.toString(i).startsWith(args[1])) result.add(Integer.toString(i));
+					}
+				}
+				if (commandSender.hasPermission("innovateflight.setothers")) {
+					for (Player player : Bukkit.getOnlinePlayers()) {
+						if(player.getDisplayName().toLowerCase().startsWith(args[1])) result.add(player.getDisplayName());
 					}
 				}
 			}
+
+			if (args[0].equalsIgnoreCase("on") || args[0].equalsIgnoreCase("off")) {
+				if (commandSender.hasPermission("innovateflight.toggle") && commandSender.hasPermission("innovateflight.setothers")) {
+					for (Player player : Bukkit.getOnlinePlayers()) {
+						if(player.getDisplayName().toLowerCase().startsWith(args[1])) result.add(player.getDisplayName());
+					}
+				}
+			}
+
+			return result;
+
+		case 3:
+			if (args[0].equalsIgnoreCase("speed")) {
+				if (commandSender.hasPermission("innovateflight.speed") && commandSender.hasPermission("innovateflight.setothers")) {
+					for (int i = 1; i < 11; i++) {
+						if(Integer.toString(i).startsWith(args[2])) result.add(Integer.toString(i));
+					}
+				}
+			}
+
 			return result;
 		}
+
 		return Arrays.asList();
 	}
 }
