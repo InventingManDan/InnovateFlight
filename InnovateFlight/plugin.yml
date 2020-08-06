@@ -7,3 +7,31 @@ Author: InventingManDan
 commands:
   fly:
     description: /fly command
+permissions:
+  innovateflight.admin:
+    description: Gives access to all commands
+    default: op
+    children:
+      innovateflight.menu: true
+      innovateflight.toggle: true
+      innovateflight.speed: true
+      innovateflight.setothers: true
+  innovateflight.mod:
+    description: Gives access to some commands
+    default: false
+    children:
+      innovateflight.menu: true
+      innovateflight.toggle: true
+      innovateflight.speed: true
+  innovateflight.menu:
+    description: Allows you to see the menu
+    default: false
+  innovateflight.toggle:
+    description: Allows you to toggle flight for yourself
+    default: false
+  innovateflight.speed:
+    description: Allows you to set the speed for yourself
+    default: false
+  innovateflight.setothers:
+    description: Allows you to set flight and speed for others
+    default: false
